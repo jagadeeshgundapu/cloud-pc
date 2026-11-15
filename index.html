@@ -1,362 +1,319 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cloud PC | Your Desktop Anywhere</title>
+    <title>Cloud PC | Your Desktop. Anywhere.</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
-    <div class="background-glow glow-one"></div>
-    <div class="background-glow glow-two"></div>
-    <canvas id="particleCanvas"></canvas>
+    <canvas id="particles"></canvas>
 
-    <!-- LOGIN SCREEN -->
-    <section id="loginScreen" class="screen login-screen active">
-        <nav class="top-nav">
-            <div class="brand"><span class="brand-mark">C</span> CLOUD<span>PC</span></div>
-            <div class="top-nav-links">
-                <button onclick="showLandingAbout()">About</button>
-                <button onclick="showLandingSettings()">Settings</button>
-                <button onclick="showLogin()">Profile</button>
-            </div>
+    <header class="navbar">
+        <a href="#" class="logo">
+            <span class="logo-icon">C</span>
+            <span>CLOUD<span class="gold">PC</span></span>
+        </a>
+
+        <nav class="nav-links">
+            <button class="nav-btn" data-info="about">ABOUT</button>
+            <button class="nav-btn" data-info="settings">SETTINGS</button>
+            <button class="nav-btn" data-info="profile">PROFILE</button>
         </nav>
 
-        <main class="login-content">
-            <div class="hero-text">
-                <div class="eyebrow"><span class="status-dot"></span> YOUR DESKTOP. ANYWHERE.</div>
-                <h1>Powerful computing.<br><span>Without limits.</span></h1>
-                <p>Access your own Cloud PC from any device. Work, create, play and manage your desktop from anywhere.</p>
-                <div class="hero-features">
-                    <span>✦ High performance</span>
-                    <span>✦ Access anywhere</span>
-                    <span>✦ Flexible pricing</span>
+        <div class="nav-auth">
+            <button class="btn btn-outline" id="navLogin">Login</button>
+            <button class="btn btn-gold" id="navSignup">Sign Up</button>
+        </div>
+
+        <button class="menu-toggle" id="menuToggle" aria-label="Open navigation">
+            <span></span><span></span><span></span>
+        </button>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="hero-content">
+                <div class="eyebrow">
+                    <span class="status-dot"></span>
+                    THE FUTURE OF PERSONAL COMPUTING
                 </div>
-            </div>
 
-            <div class="auth-card" id="authCard">
-                <div class="auth-heading">
-                    <span class="eyebrow">WELCOME TO CLOUDPC</span>
-                    <h2 id="authTitle">Sign in</h2>
-                    <p id="authDescription">Access your cloud computing workspace.</p>
-                </div>
+                <h1 class="hero-title">
+                    YOUR DESKTOP.<br>
+                    <span class="gold-text">ANYWHERE.</span>
+                </h1>
 
-                <form id="authForm">
-                    <div id="nameField" class="form-field hidden">
-                        <label>Full name</label>
-                        <input type="text" id="fullName" placeholder="Enter your name">
-                    </div>
-
-                    <div class="form-field">
-                        <label>Email or mobile number</label>
-                        <input type="text" id="loginId" placeholder="Enter email or phone number" required>
-                    </div>
-
-                    <div class="form-field">
-                        <label>Password</label>
-                        <input type="password" id="password" placeholder="Enter password" required>
-                    </div>
-
-                    <button type="submit" class="primary-btn full-btn" id="authSubmit">Sign in <span>→</span></button>
-                </form>
-
-                <p class="auth-switch" id="authSwitch">
-                    Don't have an account? <button onclick="toggleAuth()">Create account</button>
+                <p class="hero-description">
+                    Experience the power of a high-performance PC directly
+                    through your browser. No expensive hardware. No complicated
+                    setup. Just connect, choose your PC, and start working.
                 </p>
-                <p class="demo-note">Demo project — authentication is stored locally in this browser.</p>
-            </div>
-        </main>
 
-        <footer class="landing-footer">
-            <span>© 2026 CLOUDPC</span>
-            <span>YOUR COMPUTING SPACE, EVERYWHERE.</span>
-        </footer>
-    </section>
-
-    <!-- DASHBOARD SCREEN -->
-    <section id="cloudDashboard" class="screen dashboard-screen">
-        <aside class="sidebar">
-            <div class="brand sidebar-brand"><span class="brand-mark">C</span> CLOUD<span>PC</span></div>
-
-            <div class="sidebar-account">
-                <div class="avatar" id="sidebarAvatar">U</div>
-                <div>
-                    <strong id="sidebarUserName">User</strong>
-                    <small>Cloud account</small>
+                <div class="hero-actions">
+                    <button class="btn btn-gold btn-large" id="heroSignup">
+                        GET STARTED <span>→</span>
+                    </button>
+                    <button class="btn btn-outline btn-large" id="heroLogin">
+                        LOGIN TO CLOUD PC
+                    </button>
                 </div>
-            </div>
 
-            <div class="sidebar-label">WORKSPACE</div>
-            <nav class="sidebar-nav">
-                <button class="side-link active" data-panel="overview"><span>▦</span> Dashboard</button>
-                <button class="side-link" data-panel="plans"><span>▣</span> Choose Cloud PC</button>
-                <button class="side-link" data-panel="my-pcs"><span>▤</span> My Cloud PCs</button>
-                <button class="side-link" data-panel="transfer"><span>⇄</span> File Transfer</button>
-            </nav>
-
-            <div class="sidebar-label">ACCOUNT</div>
-            <nav class="sidebar-nav">
-                <button class="side-link" data-panel="credits"><span>◈</span> Credits</button>
-                <button class="side-link" data-panel="history"><span>◷</span> History</button>
-                <button class="side-link" data-panel="profile"><span>◉</span> Profile</button>
-                <button class="side-link" data-panel="settings"><span>⚙</span> Settings</button>
-                <button class="side-link" data-panel="about"><span>ⓘ</span> About</button>
-            </nav>
-
-            <div class="sidebar-bottom">
-                <div class="sidebar-credit">
-                    <small>AVAILABLE CREDITS</small>
-                    <strong><span id="sidebarCredits">100</span> <small>CR</small></strong>
-                    <button onclick="showDashboardPanel('credits')">Manage credits →</button>
-                </div>
-                <button class="side-link logout-link" onclick="logout()"><span>↪</span> Log out</button>
-            </div>
-        </aside>
-
-        <main class="dashboard-main">
-            <header class="dashboard-header">
-                <div>
-                    <div class="eyebrow">CLOUD COMPUTING PLATFORM</div>
-                    <h2 id="panelHeading">Dashboard</h2>
-                </div>
-                <div class="header-right">
-                    <div class="connection-status"><span class="status-dot"></span> All systems operational</div>
-                    <button class="header-avatar" onclick="showDashboardPanel('profile')" id="headerAvatar">U</button>
-                </div>
-            </header>
-
-            <!-- OVERVIEW -->
-            <section class="dashboard-panel active" id="panel-overview">
-                <div class="welcome-banner">
-                    <div>
-                        <div class="eyebrow">YOUR CLOUD WORKSPACE</div>
-                        <h1>Welcome back, <span id="welcomeName">User</span>.</h1>
-                        <p>Your computing environment is ready. Choose a PC configuration and start working.</p>
-                        <button class="primary-btn" onclick="showDashboardPanel('plans')">Explore Cloud PCs →</button>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <strong>24/7</strong>
+                        <span>ACCESS</span>
                     </div>
-                    <div class="banner-graphic">
-                        <div class="monitor-graphic">
-                            <div class="monitor-screen"><span>CLOUD</span><strong>PC</strong><i></i></div>
-                            <div class="monitor-stand"></div>
+                    <div class="stat-divider"></div>
+                    <div class="stat">
+                        <strong>ANY</strong>
+                        <span>DEVICE</span>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat">
+                        <strong>SECURE</strong>
+                        <span>CLOUD STORAGE</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hero-visual">
+                <div class="orbit orbit-one"></div>
+                <div class="orbit orbit-two"></div>
+
+                <div class="pc-glow"></div>
+
+                <div class="computer-card">
+                    <div class="computer-top">
+                        <div class="window-dots">
+                            <span></span><span></span><span></span>
+                        </div>
+                        <span class="computer-label">CLOUD PC SYSTEM</span>
+                        <span class="online-label">
+                            <i></i> ONLINE
+                        </span>
+                    </div>
+
+                    <div class="computer-screen">
+                        <div class="screen-content">
+                            <div class="screen-logo">CLOUD<span>PC</span></div>
+                            <p>YOUR POWERFUL DESKTOP</p>
+
+                            <div class="screen-grid">
+                                <div class="screen-feature">
+                                    <span>CPU</span>
+                                    <strong>HIGH</strong>
+                                    <div class="progress"><i style="width:85%"></i></div>
+                                </div>
+                                <div class="screen-feature">
+                                    <span>MEMORY</span>
+                                    <strong>32 GB</strong>
+                                    <div class="progress"><i style="width:70%"></i></div>
+                                </div>
+                                <div class="screen-feature">
+                                    <span>STORAGE</span>
+                                    <strong>1 TB</strong>
+                                    <div class="progress"><i style="width:60%"></i></div>
+                                </div>
+                                <div class="screen-feature">
+                                    <span>STATUS</span>
+                                    <strong class="ready">READY</strong>
+                                    <div class="progress"><i style="width:100%"></i></div>
+                                </div>
+                            </div>
+
+                            <div class="screen-footer">
+                                <span>● SYSTEM READY</span>
+                                <span>SECURE CONNECTION</span>
+                            </div>
                         </div>
                     </div>
+                    <div class="computer-stand"></div>
+                    <div class="computer-base"></div>
                 </div>
 
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <span>AVAILABLE CREDITS</span>
-                        <strong id="overviewCredits">100 CR</strong>
-                        <small>Your current balance</small>
-                    </div>
-                    <div class="stat-card">
-                        <span>MY CLOUD PCS</span>
-                        <strong id="overviewPCs">0</strong>
-                        <small>Saved configurations</small>
-                    </div>
-                    <div class="stat-card">
-                        <span>ACTIVITY RECORDS</span>
-                        <strong id="overviewHistory">0</strong>
-                        <small>Account activities</small>
+                <div class="floating-card floating-left">
+                    <span class="floating-icon">⚡</span>
+                    <div>
+                        <strong>High Performance</strong>
+                        <small>Power without limits</small>
                     </div>
                 </div>
 
-                <div class="section-heading">
-                    <div><h3>Recommended Cloud PCs</h3><p>Choose a configuration for your workload.</p></div>
-                    <button class="text-btn" onclick="showDashboardPanel('plans')">View all plans →</button>
-                </div>
-
-                <div class="plan-grid">
-                    <article class="plan-card">
-                        <div class="plan-icon">▤</div><span class="plan-tag">STARTER</span>
-                        <h3>Basic</h3><p>For everyday computing and browsing.</p>
-                        <strong>5 <small>CR / hour</small></strong>
-                        <button class="outline-btn" onclick="selectCloudPC('basic')">Select PC</button>
-                    </article>
-                    <article class="plan-card featured">
-                        <div class="plan-icon">◈</div><span class="plan-tag">POPULAR</span>
-                        <h3>Professional</h3><p>For productivity and development.</p>
-                        <strong>10 <small>CR / hour</small></strong>
-                        <button class="primary-btn" onclick="selectCloudPC('professional')">Select PC</button>
-                    </article>
-                    <article class="plan-card">
-                        <div class="plan-icon">▧</div><span class="plan-tag">PERFORMANCE</span>
-                        <h3>Gaming</h3><p>For gaming and GPU-intensive work.</p>
-                        <strong>20 <small>CR / hour</small></strong>
-                        <button class="outline-btn" onclick="selectCloudPC('gaming')">Select PC</button>
-                    </article>
-                </div>
-
-                <div class="section-heading"><div><h3>Recent activity</h3><p>Your latest account events.</p></div>
-                    <button class="text-btn" onclick="showDashboardPanel('history')">View history →</button>
-                </div>
-                <div class="activity-list" id="recentActivity"></div>
-            </section>
-
-            <!-- CHOOSE PC -->
-            <section class="dashboard-panel" id="panel-plans">
-                <div class="page-intro"><div class="eyebrow">CONFIGURE YOUR WORKSPACE</div><h2>Choose your Cloud PC</h2><p>Select the computing power that matches your requirements. Demo prices are charged in credits per hour.</p></div>
-                <div class="all-plans-grid" id="allPlansGrid"></div>
-                <div class="notice">These are demonstration configurations. Actual cloud hardware, GPU access and remote desktop connectivity require a cloud infrastructure backend.</div>
-            </section>
-
-            <!-- MY PCS -->
-            <section class="dashboard-panel" id="panel-my-pcs">
-                <div class="page-intro"><div class="eyebrow">YOUR CONFIGURATIONS</div><h2>My Cloud PCs</h2><p>Manage your saved Cloud PC configurations and launch a desktop.</p></div>
-                <div id="myPCList" class="my-pc-list"></div>
-                <button class="primary-btn" onclick="showDashboardPanel('plans')">+ Add a Cloud PC</button>
-            </section>
-
-            <!-- FILE TRANSFER -->
-            <section class="dashboard-panel" id="panel-transfer">
-                <div class="page-intro"><div class="eyebrow">MOVE YOUR DATA</div><h2>File Transfer</h2><p>Transfer files between this device and the Cloud PC demo workspace.</p></div>
-                <div class="transfer-grid">
-                    <div class="transfer-card">
-                        <div class="transfer-icon">↑</div><h3>Upload to Cloud PC</h3>
-                        <p>Select files from your local device. They will be added to this browser demo's transfer list.</p>
-                        <input type="file" id="uploadInput" multiple>
-                        <button class="primary-btn" onclick="uploadCloudFiles()">Upload selected files</button>
-                    </div>
-                    <div class="transfer-card">
-                        <div class="transfer-icon">↓</div><h3>Download to device</h3>
-                        <p>Download files from the transfer list to your local device.</p>
-                        <button class="outline-btn" onclick="downloadCloudBackup()">Download transfer list</button>
+                <div class="floating-card floating-right">
+                    <span class="floating-icon">☁</span>
+                    <div>
+                        <strong>Cloud Connected</strong>
+                        <small>Access from anywhere</small>
                     </div>
                 </div>
-                <div class="section-heading"><div><h3>Transferred files</h3><p>Files selected during this browser session.</p></div></div>
-                <div id="transferredFiles" class="file-list"></div>
-                <div class="notice">This prototype uses browser file access. It does not upload files to a remote server.</div>
-            </section>
-
-            <!-- CREDITS -->
-            <section class="dashboard-panel" id="panel-credits">
-                <div class="page-intro"><div class="eyebrow">ACCOUNT BALANCE</div><h2>Credits</h2><p>Manage your demo Cloud PC credits.</p></div>
-                <div class="credit-balance-card">
-                    <span>YOUR AVAILABLE BALANCE</span>
-                    <strong><span id="creditBalance">100</span> <small>CR</small></strong>
-                    <p>Credits are used for simulated PC launch charges.</p>
-                </div>
-                <div class="section-heading"><div><h3>Add demo credits</h3><p>Select a demo credit package.</p></div></div>
-                <div class="credit-packages">
-                    <div class="credit-package"><h3>Starter</h3><strong>100 CR</strong><p>Demo package</p><button class="outline-btn" onclick="addDemoCredits(100)">Add credits</button></div>
-                    <div class="credit-package"><h3>Standard</h3><strong>500 CR</strong><p>Demo package</p><button class="outline-btn" onclick="addDemoCredits(500)">Add credits</button></div>
-                    <div class="credit-package"><h3>Power</h3><strong>1000 CR</strong><p>Demo package</p><button class="primary-btn" onclick="addDemoCredits(1000)">Add credits</button></div>
-                </div>
-                <div class="notice">No real payment is processed. These buttons only update the local demo balance.</div>
-            </section>
-
-            <!-- HISTORY -->
-            <section class="dashboard-panel" id="panel-history">
-                <div class="page-intro"><div class="eyebrow">ACCOUNT RECORDS</div><h2>Activity History</h2><p>Review your recent Cloud PC activities.</p></div>
-                <div class="history-toolbar"><span>Recent events</span><button class="text-btn" onclick="clearActivityHistory()">Clear history</button></div>
-                <div id="historyList" class="activity-list"></div>
-            </section>
-
-            <!-- PROFILE -->
-            <section class="dashboard-panel" id="panel-profile">
-                <div class="page-intro"><div class="eyebrow">ACCOUNT DETAILS</div><h2>My Profile</h2><p>View and update your local demo account details.</p></div>
-                <div class="profile-card">
-                    <div class="large-avatar" id="profileAvatar">U</div>
-                    <div class="profile-fields">
-                        <label>Full name</label><input id="profileName" type="text" placeholder="Your name">
-                        <label>Email or mobile number</label><input id="profileContact" type="text" disabled>
-                        <button class="primary-btn" onclick="saveProfile()">Save profile</button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- SETTINGS -->
-            <section class="dashboard-panel" id="panel-settings">
-                <div class="page-intro"><div class="eyebrow">PREFERENCES</div><h2>Settings</h2><p>Customize the appearance of your Cloud PC dashboard.</p></div>
-                <div class="settings-card">
-                    <div><h3>Accent color</h3><p>Change the highlight color used across the interface.</p></div>
-                    <select id="accentSelect" onchange="changeAccent(this.value)">
-                        <option value="gold">Gold</option><option value="blue">Blue</option><option value="purple">Purple</option><option value="green">Green</option>
-                    </select>
-                </div>
-                <div class="settings-card">
-                    <div><h3>Interface animations</h3><p>Enable or disable interface animations.</p></div>
-                    <label class="switch"><input id="animationToggle" type="checkbox" checked onchange="toggleAnimations(this.checked)"><span></span></label>
-                </div>
-                <div class="settings-card">
-                    <div><h3>Reset demo data</h3><p>Clear saved PCs, credits, history and preferences.</p></div>
-                    <button class="danger-btn" onclick="resetDemoData()">Reset data</button>
-                </div>
-            </section>
-
-            <!-- ABOUT -->
-            <section class="dashboard-panel" id="panel-about">
-                <div class="page-intro"><div class="eyebrow">ABOUT THE PLATFORM</div><h2>Computing without boundaries.</h2><p>A Cloud PC concept that makes powerful computing accessible from different devices.</p></div>
-                <div class="about-card">
-                    <h3>Your desktop, delivered through the cloud.</h3>
-                    <p>Cloud PC is designed to let users access a desktop environment through a browser on a laptop, desktop, tablet or mobile device. Instead of depending entirely on expensive local hardware, users can select a computing configuration based on their requirements.</p>
-                    <p>The concept is intended for users who need additional computing power for productivity, development, gaming, video editing and other demanding workloads without owning a high-end physical computer.</p>
-                    <div class="about-feature-grid">
-                        <div><strong>01</strong><h4>Access anywhere</h4><p>Connect from supported devices through a browser.</p></div>
-                        <div><strong>02</strong><h4>Flexible configurations</h4><p>Choose a PC plan based on your workload.</p></div>
-                        <div><strong>03</strong><h4>Usage-based concept</h4><p>Pay according to the time and resources used.</p></div>
-                        <div><strong>04</strong><h4>Centralized data concept</h4><p>Keep computing resources and files in a managed environment.</p></div>
-                    </div>
-                    <div class="notice">This is a front-end demonstration. Real remote computing, secure authentication, cloud backup and billing must be implemented using backend services.</div>
-                </div>
-            </section>
-        </main>
-    </section>
-
-    <!-- CLOUD DESKTOP SCREEN -->
-    <section id="desktopScreen" class="screen desktop-screen">
-        <div class="desktop-topbar">
-            <div class="brand"><span class="brand-mark">C</span> CLOUD<span>PC</span></div>
-            <div class="desktop-top-actions">
-                <span class="desktop-status"><span class="status-dot"></span> Connected (Demo)</span>
-                <button onclick="returnToDashboard()">Cloud PC Dashboard</button>
-                <button onclick="logout()">Sign out</button>
             </div>
+        </section>
+
+        <section class="trust-strip">
+            <p>ONE CLOUD PC. MULTIPLE POSSIBILITIES.</p>
+            <div class="trust-items">
+                <span>GAMING</span>
+                <span>VIDEO EDITING</span>
+                <span>DEVELOPMENT</span>
+                <span>PRODUCTIVITY</span>
+                <span>DESIGN</span>
+            </div>
+        </section>
+
+        <section class="features section" id="features">
+            <div class="section-heading">
+                <span class="section-tag">WHY CLOUD PC?</span>
+                <h2>POWERFUL COMPUTING.<br><span class="gold-text">WITHOUT LIMITS.</span></h2>
+                <p>Everything you need from a powerful desktop, available through the cloud.</p>
+            </div>
+
+            <div class="feature-grid">
+                <article class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>High Performance</h3>
+                    <p>Use powerful computing resources for demanding applications, development, gaming, and editing.</p>
+                </article>
+
+                <article class="feature-card">
+                    <div class="feature-icon">☁</div>
+                    <h3>Access Anywhere</h3>
+                    <p>Connect to your desktop using a laptop, tablet, or mobile device through a browser.</p>
+                </article>
+
+                <article class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h3>Secure Environment</h3>
+                    <p>Keep your cloud workspace protected with secure access and account-based controls.</p>
+                </article>
+
+                <article class="feature-card">
+                    <div class="feature-icon">💾</div>
+                    <h3>Data Backup</h3>
+                    <p>Keep important work in your cloud workspace and support continuity across devices.</p>
+                </article>
+
+                <article class="feature-card">
+                    <div class="feature-icon">₹</div>
+                    <h3>Affordable Usage</h3>
+                    <p>Select a configuration that suits your needs and pay according to your usage time.</p>
+                </article>
+
+                <article class="feature-card">
+                    <div class="feature-icon">🎮</div>
+                    <h3>Built for Creators</h3>
+                    <p>Choose a suitable configuration for gaming, video editing, design, and other demanding tasks.</p>
+                </article>
+            </div>
+        </section>
+
+        <section class="how-section section">
+            <div class="section-heading">
+                <span class="section-tag">SIMPLE PROCESS</span>
+                <h2>YOUR CLOUD PC IN <span class="gold-text">THREE STEPS.</span></h2>
+                <p>Getting started is simple. Your desktop is only a few steps away.</p>
+            </div>
+
+            <div class="steps">
+                <div class="step-card">
+                    <div class="step-number">01</div>
+                    <div class="step-icon">👤</div>
+                    <h3>Create an Account</h3>
+                    <p>Sign in using your account and access the Cloud PC platform.</p>
+                </div>
+
+                <div class="step-line"></div>
+
+                <div class="step-card">
+                    <div class="step-number">02</div>
+                    <div class="step-icon">🖥</div>
+                    <h3>Choose Your PC</h3>
+                    <p>Select the computing configuration that matches your requirements.</p>
+                </div>
+
+                <div class="step-line"></div>
+
+                <div class="step-card">
+                    <div class="step-number">03</div>
+                    <div class="step-icon">🚀</div>
+                    <h3>Launch and Work</h3>
+                    <p>Start your cloud desktop and use it directly from your browser.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="cta-section">
+            <div class="cta-content">
+                <span class="section-tag">READY TO EXPERIENCE IT?</span>
+                <h2>YOUR NEXT PC IS<br><span class="gold-text">IN THE CLOUD.</span></h2>
+                <p>Leave hardware limitations behind. Start your cloud computing experience today.</p>
+                <button class="btn btn-gold btn-large" id="bottomSignup">
+                    CREATE YOUR ACCOUNT <span>→</span>
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <a href="#" class="logo">
+            <span class="logo-icon">C</span>
+            <span>CLOUD<span class="gold">PC</span></span>
+        </a>
+        <p>© 2026 Cloud PC. All rights reserved.</p>
+        <span class="footer-caption">YOUR DESKTOP. ANYWHERE.</span>
+    </footer>
+
+    <!-- Authentication modal -->
+    <div class="modal-overlay" id="authModal">
+        <div class="modal">
+            <button class="modal-close" id="closeAuth">&times;</button>
+            <div class="modal-logo">CLOUD<span class="gold">PC</span></div>
+            <h2 id="authTitle">Welcome Back</h2>
+            <p id="authSubtitle">Login to access your cloud desktop.</p>
+
+            <form id="authForm">
+                <div id="nameField" class="form-field hidden">
+                    <label for="userName">Full Name</label>
+                    <input type="text" id="userName" placeholder="Enter your name">
+                </div>
+
+                <div class="form-field">
+                    <label for="userEmail">Email Address</label>
+                    <input type="email" id="userEmail" placeholder="Enter your email" required>
+                </div>
+
+                <div class="form-field">
+                    <label for="userPassword">Password</label>
+                    <input type="password" id="userPassword" placeholder="Enter your password" required minlength="6">
+                </div>
+
+                <button type="submit" class="btn btn-gold modal-submit" id="authSubmit">
+                    LOGIN
+                </button>
+            </form>
+
+            <p class="switch-auth">
+                <span id="switchText">Don't have an account?</span>
+                <button id="switchAuth">Sign Up</button>
+            </p>
+            <p class="auth-message" id="authMessage"></p>
         </div>
+    </div>
 
-        <div class="desktop-area" id="desktopArea">
-            <div class="desktop-welcome">
-                <div class="desktop-orb">C</div>
-                <h1>Welcome to your Cloud PC</h1>
-                <p id="desktopWelcome">Your workspace is ready.</p>
-                <span class="desktop-hint">Select an application to get started</span>
-            </div>
-
-            <div class="desktop-icons">
-                <button class="desktop-icon" onclick="openApp('fileManager')"><span>📁</span>File Manager</button>
-                <button class="desktop-icon" onclick="openApp('notepad')"><span>📝</span>Notepad</button>
-                <button class="desktop-icon" onclick="openApp('calculator')"><span>🧮</span>Calculator</button>
-                <button class="desktop-icon" onclick="openApp('browser')"><span>🌐</span>Browser</button>
-                <button class="desktop-icon" onclick="openApp('terminal')"><span>⌨</span>Terminal</button>
-                <button class="desktop-icon" onclick="openApp('settings')"><span>⚙</span>Settings</button>
-                <button class="desktop-icon" onclick="openApp('about')"><span>ⓘ</span>About</button>
-                <button class="desktop-icon" onclick="openApp('paint')"><span>🎨</span>Paint</button>
-            </div>
-
-            <div id="windowLayer"></div>
+    <!-- Information modal -->
+    <div class="modal-overlay" id="infoModal">
+        <div class="modal info-modal">
+            <button class="modal-close" id="closeInfo">&times;</button>
+            <div class="modal-logo">CLOUD<span class="gold">PC</span></div>
+            <h2 id="infoTitle">About Cloud PC</h2>
+            <div id="infoContent"></div>
         </div>
-
-        <footer class="taskbar">
-            <button class="taskbar-start" onclick="toggleStartMenu()">C</button>
-            <div class="taskbar-apps" id="taskbarApps"></div>
-            <div class="taskbar-right"><span id="desktopClock"></span><button onclick="returnToDashboard()">☁</button></div>
-        </footer>
-
-        <div id="startMenu" class="start-menu hidden">
-            <div class="start-menu-title">Cloud PC</div>
-            <div class="start-menu-grid">
-                <button onclick="openApp('fileManager');toggleStartMenu()">📁<span>Files</span></button>
-                <button onclick="openApp('notepad');toggleStartMenu()">📝<span>Notepad</span></button>
-                <button onclick="openApp('calculator');toggleStartMenu()">🧮<span>Calculator</span></button>
-                <button onclick="openApp('browser');toggleStartMenu()">🌐<span>Browser</span></button>
-                <button onclick="openApp('terminal');toggleStartMenu()">⌨<span>Terminal</span></button>
-                <button onclick="openApp('paint');toggleStartMenu()">🎨<span>Paint</span></button>
-            </div>
-            <button class="start-logout" onclick="logout()">Sign out</button>
-        </div>
-    </section>
-
-    <div id="toast" class="toast"></div>
+    </div>
 
     <script src="script.js"></script>
 </body>

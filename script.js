@@ -1,8 +1,123 @@
-/* =========================================
-   CLOUD PC - COMPLETE JAVASCRIPT
-========================================= */
 
-const $ = (id) => document.getElementById(id);
+// ==========================================
+// CLOUD PC - FRONT PAGE JAVASCRIPT
+// ==========================================
+
+// ELEMENTS
+const authModal = document.getElementById("authModal");
+const infoModal = document.getElementById("infoModal");
+
+const authTitle = document.getElementById("authTitle");
+const authSubtitle = document.getElementById("authSubtitle");
+const authSubmit = document.getElementById("authSubmit");
+const authForm = document.getElementById("authForm");
+const authMessage = document.getElementById("authMessage");
+
+const nameField = document.getElementById("nameField");
+const switchText = document.getElementById("switchText");
+const switchAuth = document.getElementById("switchAuth");
+
+let isSignup = false;
+
+// ==========================================
+// OPEN LOGIN / SIGNUP
+// ==========================================
+
+function openAuth(type) {
+    if (getLoggedInUser()) {
+        window.location.href = DASHBOARD_PAGE;
+        return;
+    }
+
+    isSignup = type === "signup";
+
+    authMessage.textContent = "";
+    authForm.reset();
+
+    updateAuthForm();
+
+    authModal.classList.add("show");
+    document.body.style.overflow = "hidden";
+}
+
+function updateAuthForm() {
+    if (isSignup) {
+        authTitle.textContent = "Create Account";
+        authSubtitle.textContent = "Create your account to get started with Cloud PC.";
+        authSubmit.textContent = "CREATE ACCOUNT";
+        nameField.classList.remove("hidden");
+        document.getElementById("userName").required = true;
+        switchText.textContent = "Already have an account?";
+        switchAuth.textContent = "Login";
+    } else {
+        authTitle.textContent = "Welcome Back";
+        authSubtitle.textContent = "Login to access your cloud desktop.";
+        authSubmit.textContent = "LOGIN";
+        nameField.classList.add("hidden");
+        document.getElementById("userName").required = false;
+        switchText.textContent = "Don't have an account?";
+        switchAuth.textContent = "Sign Up";
+    }
+}
+
+document.getElementById("navLogin").addEventListener("click", () => {
+    openAuth("login");
+});
+
+document.getElementById("navSignup").addEventListener("click", () => {
+    openAuth("signup");
+});
+
+document.getElementById("heroLogin").addEventListener("click", () => {
+    openAuth("login");
+});
+
+document.getElementById("heroSignup").addEventListener("click", () => {
+    openAuth("signup");
+});
+
+document.getElementById("bottomSignup").addEventListener("click", () => {
+    openAuth("signup");
+});
+
+switchAuth.addEventListener("click", () => {
+    openAuth(isSignup ? "login" : "signup");
+});
+
+// ==========================================
+// CLOSE MODALS
+// ==========================================
+
+document.getElementById("closeAuth").addEventListener("click", closeModals);
+document.getElementById("closeInfo").addEventListener("click", closeModals);
+
+function closeModals() {
+    authModal.classList.remove("show");
+    infoModal.classList.remove("show");
+    document.body.style.overflow = "";
+}
+
+[authModal, infoModal].forEach(modal => {
+    modal.addEventListener("click", event => {
+        if (event.target === modal) {
+            closeModals();
+        }
+    });
+});
+
+document.addEventListener("keydown", event => {
+    if (event.key === "Escape") {
+        closeModals();
+    }
+});
+
+// ==========================================
+// DEMO LOGIN AND SIGNUP
+// ==========================================
+
+// Demonstration-only authentication. Data is shared with dashboard.html
+// through localStorage using the same keys that dashboard.js reads.
+// Do not store real passwords in localStorage; use a secure backend in production.
 
 const STORAGE = {
     users: "cloudpc_users",
@@ -10,68 +125,12 @@ const STORAGE = {
     credits: "cloudpc_credits",
     pcs: "cloudpc_pcs",
     history: "cloudpc_history",
-    profile: "cloudpc_profile",
-    settings: "cloudpc_settings",
-    notepad: "cloudpc_notepad"
+    profile: "cloudpc_profile"
 };
 
-const cloudPCPlans = {
-    basic: {
-        name: "Basic",
-        price: 5,
-        cpu: "2 vCPU",
-        ram: "4 GB",
-        storage: "50 GB SSD",
-        gpu: "Integrated",
-        description: "Suitable for browsing, documents and everyday computing.",
-        icon: "▤"
-    },
-    professional: {
-        name: "Professional",
-        price: 10,
-        cpu: "4 vCPU",
-        ram: "8 GB",
-        storage: "100 GB SSD",
-        gpu: "Standard",
-        description: "Suitable for productivity, development and multitasking.",
-        icon: "◈"
-    },
-    gaming: {
-        name: "Gaming",
-        price: 20,
-        cpu: "8 vCPU",
-        ram: "16 GB",
-        storage: "200 GB SSD",
-        gpu: "Dedicated GPU",
-        description: "Designed for gaming and GPU-intensive workloads.",
-        icon: "▧"
-    },
-    creator: {
-        name: "Creator",
-        price: 25,
-        cpu: "12 vCPU",
-        ram: "32 GB",
-        storage: "500 GB SSD",
-        gpu: "High-performance GPU",
-        description: "Designed for video editing, rendering and creative work.",
-        icon: "✦"
-    }
-};
+const DASHBOARD_PAGE = "dashboard.html";
 
-let isSignup = false;
-let currentUser = null;
-let selectedCloudPC = "professional";
-let transferredFiles = [];
-let openWindows = {};
-let windowCounter = 0;
-let toastTimeout = null;
-let calculatorExpression = "";
-
-/* =========================================
-   LOCAL STORAGE HELPERS
-========================================= */
-
-function readStorage(key, fallback) {
+function readStore(key, fallback) {
     try {
         const value = localStorage.getItem(key);
         return value === null ? fallback : JSON.parse(value);
@@ -80,1634 +139,353 @@ function readStorage(key, fallback) {
     }
 }
 
-function writeStorage(key, value) {
+function writeStore(key, value) {
     localStorage.setItem(key, JSON.stringify(value));
 }
 
-function getCredits() {
-    return Number(readStorage(STORAGE.credits, 100)) || 0;
+function addHistoryEntry(title, description, icon) {
+    const history = readStore(STORAGE.history, []);
+    history.unshift({ title, description, icon, time: new Date().toLocaleString() });
+    writeStore(STORAGE.history, history.slice(0, 100));
 }
 
-function setCredits(value) {
-    writeStorage(STORAGE.credits, Math.max(0, Number(value) || 0));
+function getLoggedInUser() {
+    const session = readStore(STORAGE.session, null);
+    if (!session) return null;
+    return readStore(STORAGE.users, []).find(user => user.loginId === session) || null;
 }
 
-function getPCs() {
-    return readStorage(STORAGE.pcs, []);
-}
-
-function setPCs(pcs) {
-    writeStorage(STORAGE.pcs, pcs);
-}
-
-function getHistory() {
-    return readStorage(STORAGE.history, []);
-}
-
-function setHistory(history) {
-    writeStorage(STORAGE.history, history);
-}
-
-function getProfile() {
-    return readStorage(STORAGE.profile, {});
-}
-
-/* =========================================
-   NOTIFICATIONS
-========================================= */
-
-function showToast(message) {
-    const toast = $("toast");
-
-    if (!toast) return;
-
-    toast.textContent = message;
-    toast.classList.add("show");
-
-    clearTimeout(toastTimeout);
-
-    toastTimeout = setTimeout(() => {
-        toast.classList.remove("show");
-    }, 2600);
-}
-
-/* =========================================
-   SCREEN NAVIGATION
-========================================= */
-
-function showScreen(screenId) {
-    document.querySelectorAll(".screen").forEach(screen => {
-        screen.classList.remove("active");
-    });
-
-    const target = $(screenId);
-
-    if (target) {
-        target.classList.add("active");
-    }
-}
-
-function showLogin() {
-    showScreen("loginScreen");
-}
-
-function showLandingAbout() {
-    showToast("Sign in to explore the About section.");
-}
-
-function showLandingSettings() {
-    showToast("Sign in to access your settings.");
-}
-
-/* =========================================
-   AUTHENTICATION
-========================================= */
-
-function toggleAuth() {
-    isSignup = !isSignup;
-
-    $("authTitle").textContent = isSignup ? "Create account" : "Sign in";
-    $("authDescription").textContent = isSignup
-        ? "Create your Cloud PC account."
-        : "Access your cloud computing workspace.";
-
-    $("authSubmit").innerHTML = isSignup
-        ? 'Create account <span>→</span>'
-        : 'Sign in <span>→</span>';
-
-    $("authSwitch").innerHTML = isSignup
-        ? 'Already have an account? <button type="button" onclick="toggleAuth()">Sign in</button>'
-        : 'Don\'t have an account? <button type="button" onclick="toggleAuth()">Create account</button>';
-
-    $("nameField").classList.toggle("hidden", !isSignup);
-    $("fullName").required = isSignup;
-}
-
-$("authForm").addEventListener("submit", function(event) {
+authForm.addEventListener("submit", event => {
     event.preventDefault();
 
-    const loginId = $("loginId").value.trim().toLowerCase();
-    const password = $("password").value;
-    const fullName = $("fullName").value.trim();
+    const name = document.getElementById("userName").value.trim();
+    const email = document.getElementById("userEmail").value.trim().toLowerCase();
+    const password = document.getElementById("userPassword").value;
 
-    if (!loginId || !password) {
-        showToast("Enter your login details.");
+    if (!email || !password) {
+        authMessage.textContent = "Please fill in all required fields.";
         return;
     }
 
-    let users = readStorage(STORAGE.users, []);
+    const users = readStore(STORAGE.users, []);
 
     if (isSignup) {
-        if (!fullName) {
-            showToast("Enter your full name.");
+        if (!name) {
+            authMessage.textContent = "Please enter your name.";
             return;
         }
 
-        const existing = users.find(user => user.loginId === loginId);
-
-        if (existing) {
-            showToast("An account with these details already exists.");
+        if (users.some(user => user.loginId === email)) {
+            authMessage.textContent = "An account with this email already exists.";
             return;
         }
 
-        const newUser = {
-            loginId,
-            password,
-            name: fullName
-        };
+        users.push({ loginId: email, password: password, name: name });
+        writeStore(STORAGE.users, users);
 
-        users.push(newUser);
-        writeStorage(STORAGE.users, users);
+        writeStore(STORAGE.credits, 100);
+        writeStore(STORAGE.pcs, []);
+        writeStore(STORAGE.history, []);
+        addHistoryEntry("Account created", "Your Cloud PC account was created.", "✦");
 
-        currentUser = newUser;
-        writeStorage(STORAGE.profile, {
-            name: fullName,
-            contact: loginId
-        });
+        authMessage.textContent = "Account created successfully. You can now login.";
 
-        setCredits(100);
-        setPCs([]);
-        setHistory([]);
-
-        addHistory("Account created", "Your Cloud PC account was created.", "✦");
+        setTimeout(() => {
+            openAuth("login");
+            document.getElementById("userEmail").value = email;
+        }, 1200);
 
     } else {
-        const user = users.find(item =>
-            item.loginId === loginId && item.password === password
-        );
+        const user = users.find(item => item.loginId === email && item.password === password);
 
         if (!user) {
-            showToast("Incorrect login details.");
+            authMessage.textContent = "Invalid email or password.";
             return;
         }
 
-        currentUser = user;
+        writeStore(STORAGE.session, user.loginId);
+        writeStore(STORAGE.profile, { name: user.name, contact: user.loginId });
 
-        writeStorage(STORAGE.profile, {
-            name: user.name,
-            contact: user.loginId
-        });
+        if (localStorage.getItem(STORAGE.credits) === null) writeStore(STORAGE.credits, 100);
+        if (localStorage.getItem(STORAGE.pcs) === null) writeStore(STORAGE.pcs, []);
+        if (localStorage.getItem(STORAGE.history) === null) writeStore(STORAGE.history, []);
 
-        if (localStorage.getItem(STORAGE.credits) === null) {
-            setCredits(100);
-        }
+        addHistoryEntry("Logged in", "You signed in to your Cloud PC account.", "↪");
 
-        if (localStorage.getItem(STORAGE.pcs) === null) {
-            setPCs([]);
-        }
+        authMessage.textContent = "Login successful. Redirecting...";
 
-        if (localStorage.getItem(STORAGE.history) === null) {
-            setHistory([]);
-        }
-
-        addHistory("Logged in", "You signed in to your Cloud PC account.", "↪");
+        setTimeout(() => {
+            window.location.href = DASHBOARD_PAGE;
+        }, 800);
     }
-
-    writeStorage(STORAGE.session, currentUser.loginId);
-
-    $("authForm").reset();
-
-    openCloudDashboard();
 });
 
-/* =========================================
-   LOGOUT AND SESSION RESTORATION
-========================================= */
+// ==========================================
+// ABOUT / SETTINGS / PROFILE NAVIGATION
+// ==========================================
 
-function logout() {
-    if (currentUser) {
-        addHistory("Logged out", "You signed out of your Cloud PC account.", "↪");
+const infoTitle = document.getElementById("infoTitle");
+const infoContent = document.getElementById("infoContent");
+
+const infoPages = {
+    about: {
+        title: "About Cloud PC",
+        content: `
+            <div class="info-content">
+                <p>
+                    Cloud PC is a browser-based computing platform that allows
+                    users to access a desktop environment through the internet.
+                </p>
+
+                <h3>Our Purpose</h3>
+                <p>
+                    We aim to make high-performance computing accessible to
+                    people who do not own expensive physical computers.
+                </p>
+
+                <h3>What We Offer</h3>
+                <ul>
+                    <li>Access your desktop from laptops, tablets and mobiles.</li>
+                    <li>Choose computing specifications based on your needs.</li>
+                    <li>Use your desktop for gaming, editing and development.</li>
+                    <li>Usage-based pricing according to the selected plan.</li>
+                    <li>Cloud-based workspace and data-management features.</li>
+                </ul>
+
+                <h3>Our Goal</h3>
+                <p>
+                    Deliver powerful, flexible and affordable computing
+                    without requiring users to purchase expensive hardware.
+                </p>
+            </div>
+        `
+    },
+
+    settings: {
+        title: "Settings",
+        content: `
+            <div class="info-content">
+                <p>Manage your Cloud PC preferences.</p>
+
+                <h3>Available Settings</h3>
+                <ul>
+                    <li>Appearance and theme customization.</li>
+                    <li>Notification preferences.</li>
+                    <li>Security and account preferences.</li>
+                    <li>Display and accessibility settings.</li>
+                    <li>Cloud PC performance preferences.</li>
+                </ul>
+
+                <p>
+                    Detailed settings will be available after entering
+                    your Cloud PC account.
+                </p>
+            </div>
+        `
+    },
+
+    profile: {
+        title: "Your Profile",
+        content: `
+            <div class="info-content" id="profileContent">
+                <p>Login to view your account details and manage your profile.</p>
+            </div>
+        `
+    }
+};
+
+document.querySelectorAll(".nav-btn").forEach(button => {
+    button.addEventListener("click", () => {
+        openInfo(button.dataset.info);
+    });
+});
+
+function openInfo(type) {
+    const page = infoPages[type];
+
+    if (!page) return;
+
+    infoTitle.textContent = page.title;
+    infoContent.innerHTML = page.content;
+
+    if (type === "profile") {
+        loadProfile();
     }
 
-    localStorage.removeItem(STORAGE.session);
-
-    currentUser = null;
-    openWindows = {};
-
-    showScreen("loginScreen");
-    showToast("You have been logged out.");
+    infoModal.classList.add("show");
+    document.body.style.overflow = "hidden";
 }
 
-function restoreSession() {
-    const session = readStorage(STORAGE.session, null);
+function loadProfile() {
+    const profileContent = document.getElementById("profileContent");
 
-    if (!session) {
-        showScreen("loginScreen");
-        return;
-    }
+    const currentUser = getLoggedInUser();
 
-    const users = readStorage(STORAGE.users, []);
-    const user = users.find(item => item.loginId === session);
-
-    if (!user) {
-        localStorage.removeItem(STORAGE.session);
-        showScreen("loginScreen");
-        return;
-    }
-
-    currentUser = user;
-    openCloudDashboard();
-}
-
-/* =========================================
-   DASHBOARD INITIALIZATION
-========================================= */
-
-function openCloudDashboard() {
     if (!currentUser) {
-        showScreen("loginScreen");
+        profileContent.innerHTML = `
+            <p>You are not currently logged in.</p>
+            <h3>Access Your Account</h3>
+            <p>Login to view your profile and Cloud PC information.</p>
+            <button class="btn btn-gold" id="profileLogin">
+                LOGIN
+            </button>
+        `;
+
+        document.getElementById("profileLogin").addEventListener("click", () => {
+            closeModals();
+            openAuth("login");
+        });
+
         return;
     }
 
-    showScreen("cloudDashboard");
+    profileContent.innerHTML = `
+        <h3>Account Information</h3>
+        <p><strong>Name:</strong> ${escapeHTML(currentUser.name)}</p>
+        <p><strong>Email:</strong> ${escapeHTML(currentUser.loginId)}</p>
+        <h3>Account Status</h3>
+        <p>Logged in</p>
+        <button class="btn btn-gold" id="profileDashboard">OPEN DASHBOARD</button>
+        <button class="btn btn-outline" id="profileLogout">
+            LOGOUT
+        </button>
+    `;
 
-    const profile = getProfile();
-    const name = profile.name || currentUser.name || "User";
-    const initial = name.charAt(0).toUpperCase();
-
-    $("sidebarUserName").textContent = name;
-    $("sidebarAvatar").textContent = initial;
-    $("headerAvatar").textContent = initial;
-    $("welcomeName").textContent = name;
-    $("profileAvatar").textContent = initial;
-    $("profileName").value = name;
-    $("profileContact").value = currentUser.loginId;
-
-    updateDashboard();
-    renderAllPlans();
-    displayMyPCs();
-    displayHistory();
-    displayRecentActivity();
-    displayTransferredFiles();
-
-    const settings = readStorage(STORAGE.settings, {
-        accent: "gold",
-        animations: true
+    document.getElementById("profileDashboard").addEventListener("click", () => {
+        window.location.href = DASHBOARD_PAGE;
     });
 
-    changeAccent(settings.accent || "gold", false);
-
-    $("animationToggle").checked = settings.animations !== false;
-    toggleAnimations(settings.animations !== false, false);
-
-    document.querySelectorAll(".side-link[data-panel]").forEach(button => {
-        button.classList.remove("active");
+    document.getElementById("profileLogout").addEventListener("click", () => {
+        localStorage.removeItem(STORAGE.session);
+        closeModals();
+        alert("You have been logged out.");
     });
-
-    const overviewButton = document.querySelector('[data-panel="overview"]');
-
-    if (overviewButton) {
-        overviewButton.classList.add("active");
-    }
-
-    document.querySelectorAll(".dashboard-panel").forEach(panel => {
-        panel.classList.remove("active");
-    });
-
-    $("panel-overview").classList.add("active");
-    $("panelHeading").textContent = "Dashboard";
 }
 
-/* =========================================
-   DASHBOARD SIDEBAR
-========================================= */
+// Escape user-provided text before inserting it into HTML.
+function escapeHTML(value) {
+    return String(value).replace(/[&<>"']/g, character => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+    })[character]);
+}
 
-document.querySelectorAll(".side-link[data-panel]").forEach(button => {
+// ==========================================
+// MOBILE NAVIGATION
+// ==========================================
+
+const menuToggle = document.getElementById("menuToggle");
+const navbar = document.querySelector(".navbar");
+
+menuToggle.addEventListener("click", () => {
+    navbar.classList.toggle("menu-open");
+});
+
+document.querySelectorAll(".nav-links button, .nav-auth button").forEach(button => {
     button.addEventListener("click", () => {
-        showDashboardPanel(button.dataset.panel);
+        navbar.classList.remove("menu-open");
     });
 });
 
-const panelTitles = {
-    overview: "Dashboard",
-    plans: "Choose Cloud PC",
-    "my-pcs": "My Cloud PCs",
-    transfer: "File Transfer",
-    credits: "Credits",
-    history: "Activity History",
-    profile: "My Profile",
-    settings: "Settings",
-    about: "About Cloud PC"
-};
+// ==========================================
+// GOLDEN PARTICLE ANIMATION
+// ==========================================
 
-function showDashboardPanel(panelName) {
-    document.querySelectorAll(".dashboard-panel").forEach(panel => {
-        panel.classList.remove("active");
-    });
+const canvas = document.getElementById("particles");
+const ctx = canvas.getContext("2d");
 
-    const target = $("panel-" + panelName);
+let particles = [];
+let animationFrame;
 
-    if (!target) return;
+function resizeCanvas() {
+    const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
 
-    target.classList.add("active");
+    canvas.width = window.innerWidth * pixelRatio;
+    canvas.height = window.innerHeight * pixelRatio;
 
-    document.querySelectorAll(".side-link[data-panel]").forEach(button => {
-        button.classList.toggle(
-            "active",
-            button.dataset.panel === panelName
-        );
-    });
+    canvas.style.width = window.innerWidth + "px";
+    canvas.style.height = window.innerHeight + "px";
 
-    $("panelHeading").textContent = panelTitles[panelName] || "Dashboard";
+    ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
 
-    if (panelName === "my-pcs") displayMyPCs();
-    if (panelName === "history") displayHistory();
-    if (panelName === "transfer") displayTransferredFiles();
-    if (panelName === "credits") updateDashboard();
+    createParticles();
 }
 
-/* =========================================
-   DASHBOARD DATA
-========================================= */
-
-function updateDashboard() {
-    const credits = getCredits();
-    const pcs = getPCs();
-    const history = getHistory();
-
-    $("sidebarCredits").textContent = credits;
-    $("overviewCredits").textContent = credits + " CR";
-    $("creditBalance").textContent = credits;
-    $("overviewPCs").textContent = pcs.length;
-    $("overviewHistory").textContent = history.length;
-}
-
-/* =========================================
-   HISTORY
-========================================= */
-
-function addHistory(title, description, icon = "◷") {
-    const history = getHistory();
-
-    history.unshift({
-        title,
-        description,
-        icon,
-        time: new Date().toLocaleString()
-    });
-
-    writeStorage(STORAGE.history, history.slice(0, 100));
-
-    updateDashboard();
-    displayHistory();
-    displayRecentActivity();
-}
-
-function createActivityRow(item) {
-    const row = document.createElement("div");
-    row.className = "activity-row";
-
-    const symbol = document.createElement("div");
-    symbol.className = "activity-symbol";
-    symbol.textContent = item.icon || "◷";
-
-    const info = document.createElement("div");
-    info.className = "activity-info";
-
-    const title = document.createElement("strong");
-    title.textContent = item.title;
-
-    const description = document.createElement("small");
-    description.textContent = item.description;
-
-    info.append(title, description);
-
-    const time = document.createElement("span");
-    time.className = "activity-time";
-    time.textContent = item.time || "";
-
-    row.append(symbol, info, time);
-
-    return row;
-}
-
-function displayHistory() {
-    const container = $("historyList");
-    const history = getHistory();
-
-    container.replaceChildren();
-
-    if (!history.length) {
-        container.innerHTML = '<div class="empty-state">No activity records yet.</div>';
-        return;
+class Particle {
+    constructor() {
+        this.x = Math.random() * window.innerWidth;
+        this.y = Math.random() * window.innerHeight;
+        this.size = Math.random() * 2 + 0.5;
+        this.speedY = Math.random() * 0.35 + 0.1;
+        this.speedX = (Math.random() - 0.5) * 0.3;
+        this.opacity = Math.random() * 0.6 + 0.2;
+        this.phase = Math.random() * Math.PI * 2;
     }
 
-    history.forEach(item => {
-        container.appendChild(createActivityRow(item));
-    });
-}
+    update() {
+        this.y -= this.speedY;
+        this.x += this.speedX;
+        this.phase += 0.02;
 
-function displayRecentActivity() {
-    const container = $("recentActivity");
-    const history = getHistory();
-
-    container.replaceChildren();
-
-    if (!history.length) {
-        container.innerHTML = '<div class="activity-row">No recent activity.</div>';
-        return;
-    }
-
-    history.slice(0, 4).forEach(item => {
-        container.appendChild(createActivityRow(item));
-    });
-}
-
-function clearActivityHistory() {
-    if (!confirm("Clear all activity history?")) return;
-
-    setHistory([]);
-    displayHistory();
-    displayRecentActivity();
-    updateDashboard();
-
-    showToast("Activity history cleared.");
-}
-
-/* =========================================
-   CLOUD PC PLANS
-========================================= */
-
-function renderAllPlans() {
-    const container = $("allPlansGrid");
-    container.replaceChildren();
-
-    Object.entries(cloudPCPlans).forEach(([id, plan]) => {
-        const card = document.createElement("article");
-        card.className = "full-plan-card";
-
-        if (id === selectedCloudPC) {
-            card.classList.add("selected");
+        if (this.y < -5) {
+            this.y = window.innerHeight + 5;
+            this.x = Math.random() * window.innerWidth;
         }
 
-        const icon = document.createElement("div");
-        icon.className = "plan-icon";
-        icon.textContent = plan.icon;
-
-        const title = document.createElement("h3");
-        title.textContent = plan.name;
-
-        const description = document.createElement("p");
-        description.textContent = plan.description;
-
-        const price = document.createElement("div");
-        price.className = "plan-price";
-        price.textContent = plan.price + " ";
-
-        const priceUnit = document.createElement("small");
-        priceUnit.textContent = "CR / hour";
-        price.appendChild(priceUnit);
-
-        const specs = document.createElement("div");
-        specs.className = "spec-list";
-
-        const specItems = [
-            ["Processor", plan.cpu],
-            ["Memory", plan.ram],
-            ["Storage", plan.storage],
-            ["Graphics", plan.gpu]
-        ];
-
-        specItems.forEach(([label, value]) => {
-            const item = document.createElement("span");
-            item.textContent = label;
-
-            const bold = document.createElement("b");
-            bold.textContent = value;
-
-            item.appendChild(bold);
-            specs.appendChild(item);
-        });
-
-        const button = document.createElement("button");
-        button.className = id === selectedCloudPC ? "primary-btn" : "outline-btn";
-        button.textContent = id === selectedCloudPC ? "Selected" : "Select this PC";
-        button.addEventListener("click", () => selectCloudPC(id));
-
-        card.append(icon, title, description, price, specs, button);
-        container.appendChild(card);
-    });
-}
-
-function selectCloudPC(planId) {
-    if (!cloudPCPlans[planId]) return;
-
-    selectedCloudPC = planId;
-
-    const plan = cloudPCPlans[planId];
-
-    const pcs = getPCs();
-
-    const existing = pcs.find(pc => pc.planId === planId);
-
-    if (!existing) {
-        pcs.push({
-            id: Date.now(),
-            planId,
-            name: plan.name + " Cloud PC",
-            created: new Date().toLocaleString()
-        });
-
-        setPCs(pcs);
-
-        addHistory(
-            "Cloud PC configuration saved",
-            plan.name + " configuration was added to your account.",
-            "▣"
-        );
+        if (this.x < 0) this.x = window.innerWidth;
+        if (this.x > window.innerWidth) this.x = 0;
     }
 
-    renderAllPlans();
-    displayMyPCs();
-    updateDashboard();
+    draw() {
+        const glow = this.opacity * (0.7 + Math.sin(this.phase) * 0.3);
 
-    showToast(plan.name + " Cloud PC selected.");
-
-    showDashboardPanel("my-pcs");
-}
-
-/* =========================================
-   MY CLOUD PCS
-========================================= */
-
-function displayMyPCs() {
-    const container = $("myPCList");
-    const pcs = getPCs();
-
-    container.replaceChildren();
-
-    if (!pcs.length) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <h3>No Cloud PCs yet</h3>
-                <p>Select a Cloud PC configuration to add one to your account.</p>
-            </div>
-        `;
-        return;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(245, 196, 81, ${glow})`;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = "#f5c451";
+        ctx.fill();
+        ctx.shadowBlur = 0;
     }
-
-    pcs.forEach(pc => {
-        const plan = cloudPCPlans[pc.planId];
-
-        if (!plan) return;
-
-        const item = document.createElement("div");
-        item.className = "my-pc-item";
-
-        const symbol = document.createElement("div");
-        symbol.className = "pc-symbol";
-        symbol.textContent = plan.icon;
-
-        const info = document.createElement("div");
-        info.className = "my-pc-info";
-
-        const heading = document.createElement("h3");
-        heading.textContent = pc.name;
-
-        const details = document.createElement("p");
-        details.textContent =
-            `${plan.cpu} · ${plan.ram} RAM · ${plan.storage} · ${plan.price} CR/hour`;
-
-        info.append(heading, details);
-
-        const actions = document.createElement("div");
-        actions.className = "my-pc-actions";
-
-        const launch = document.createElement("button");
-        launch.className = "primary-btn";
-        launch.textContent = "Launch";
-        launch.addEventListener("click", () => {
-            selectedCloudPC = pc.planId;
-            launchSelectedPC();
-        });
-
-        const remove = document.createElement("button");
-        remove.className = "outline-btn";
-        remove.textContent = "Remove";
-        remove.addEventListener("click", () => removePC(pc.id));
-
-        actions.append(launch, remove);
-        item.append(symbol, info, actions);
-
-        container.appendChild(item);
-    });
 }
 
-function removePC(pcId) {
-    if (!confirm("Remove this saved Cloud PC configuration?")) return;
-
-    const pcs = getPCs().filter(pc => pc.id !== pcId);
-
-    setPCs(pcs);
-
-    addHistory(
-        "Cloud PC removed",
-        "A saved Cloud PC configuration was removed.",
-        "▤"
+function createParticles() {
+    const count = Math.min(
+        90,
+        Math.floor(window.innerWidth / 13)
     );
 
-    displayMyPCs();
-    updateDashboard();
+    particles = [];
 
-    showToast("Cloud PC removed.");
-}
-
-/* =========================================
-   LAUNCH CLOUD PC
-========================================= */
-
-function launchSelectedPC() {
-    const plan = cloudPCPlans[selectedCloudPC];
-
-    if (!plan) {
-        showToast("Select a Cloud PC first.");
-        return;
+    for (let i = 0; i < count; i++) {
+        particles.push(new Particle());
     }
-
-    const pcs = getPCs();
-    const saved = pcs.find(pc => pc.planId === selectedCloudPC);
-
-    if (!saved) {
-        showToast("Save a Cloud PC configuration first.");
-        return;
-    }
-
-    const credits = getCredits();
-
-    if (credits < plan.price) {
-        showToast("Not enough credits. Add credits to continue.");
-        showDashboardPanel("credits");
-        return;
-    }
-
-    setCredits(credits - plan.price);
-
-    addHistory(
-        "Cloud PC launched",
-        `${plan.name} Cloud PC demo session started. One hour's demo charge: ${plan.price} credits.`,
-        "▶"
-    );
-
-    $("desktopWelcome").textContent =
-        `${plan.name} · ${plan.cpu} · ${plan.ram} RAM`;
-
-    showScreen("desktopScreen");
-
-    startDesktopClock();
-
-    showToast(plan.name + " Cloud PC started. Demo credits deducted.");
 }
 
-function returnToDashboard() {
-    openWindows = {};
-    $("windowLayer").replaceChildren();
+function animateParticles() {
+    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
-    showScreen("cloudDashboard");
-    updateDashboard();
-    displayMyPCs();
-}
-
-/* =========================================
-   DEMO CREDITS
-========================================= */
-
-function addDemoCredits(amount) {
-    const current = getCredits();
-
-    setCredits(current + amount);
-
-    addHistory(
-        "Demo credits added",
-        amount + " demo credits were added to your balance.",
-        "◈"
-    );
-
-    updateDashboard();
-
-    showToast(amount + " demo credits added.");
-}
-
-/* =========================================
-   FILE TRANSFER
-========================================= */
-
-function formatFileSize(bytes) {
-    if (bytes < 1024) return bytes + " B";
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
-
-    return (bytes / (1024 * 1024)).toFixed(2) + " MB";
-}
-
-function uploadCloudFiles() {
-    const input = $("uploadInput");
-    const files = Array.from(input.files || []);
-
-    if (!files.length) {
-        showToast("Select files before uploading.");
-        return;
-    }
-
-    files.forEach(file => {
-        transferredFiles.push({
-            id: Date.now() + Math.random(),
-            name: file.name,
-            size: file.size,
-            type: file.type,
-            file,
-            uploaded: new Date().toLocaleString()
-        });
+    particles.forEach(particle => {
+        particle.update();
+        particle.draw();
     });
 
-    addHistory(
-        "Files selected for transfer",
-        files.length + " file(s) added to the local transfer list.",
-        "⇧"
-    );
-
-    input.value = "";
-
-    displayTransferredFiles();
-
-    showToast(files.length + " file(s) added to transfer list.");
+    animationFrame = requestAnimationFrame(animateParticles);
 }
 
-function displayTransferredFiles() {
-    const container = $("transferredFiles");
+window.addEventListener("resize", resizeCanvas);
 
-    if (!container) return;
+resizeCanvas();
+animateParticles();
 
-    container.replaceChildren();
-
-    if (!transferredFiles.length) {
-        container.innerHTML = '<div class="file-row"><span class="file-name">No files in the transfer list.</span></div>';
-        return;
+// Reduce animation work when the page is not visible.
+document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+        cancelAnimationFrame(animationFrame);
+    } else {
+        animateParticles();
     }
-
-    transferredFiles.forEach(file => {
-        const row = document.createElement("div");
-        row.className = "file-row";
-
-        const icon = document.createElement("span");
-        icon.textContent = "📄";
-
-        const name = document.createElement("span");
-        name.className = "file-name";
-        name.textContent = file.name;
-
-        const size = document.createElement("small");
-        size.textContent = formatFileSize(file.size);
-
-        const download = document.createElement("button");
-        download.textContent = "Download";
-        download.addEventListener("click", () => downloadTransferredFile(file.id));
-
-        row.append(icon, name, size, download);
-
-        container.appendChild(row);
-    });
-}
-
-function downloadTransferredFile(fileId) {
-    const fileItem = transferredFiles.find(item => item.id === fileId);
-
-    if (!fileItem) return;
-
-    const url = URL.createObjectURL(fileItem.file);
-
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = fileItem.name;
-    document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
-
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-
-    addHistory(
-        "File downloaded",
-        fileItem.name + " was downloaded to your local device.",
-        "⇩"
-    );
-}
-
-function downloadCloudBackup() {
-    const backup = {
-        platform: "Cloud PC Demo",
-        created: new Date().toISOString(),
-        files: transferredFiles.map(file => ({
-            name: file.name,
-            size: file.size,
-            type: file.type,
-            uploaded: file.uploaded
-        }))
-    };
-
-    const blob = new Blob(
-        [JSON.stringify(backup, null, 2)],
-        { type: "application/json" }
-    );
-
-    const url = URL.createObjectURL(blob);
-
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = "cloudpc-transfer-list.json";
-    document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
-
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-
-    addHistory(
-        "Transfer list downloaded",
-        "Your file transfer list was downloaded as a JSON file.",
-        "⇩"
-    );
-
-    showToast("Transfer list downloaded.");
-}
-
-/* =========================================
-   PROFILE
-========================================= */
-
-function saveProfile() {
-    const name = $("profileName").value.trim();
-
-    if (!name) {
-        showToast("Enter a valid name.");
-        return;
-    }
-
-    const profile = getProfile();
-
-    profile.name = name;
-    profile.contact = currentUser.loginId;
-
-    writeStorage(STORAGE.profile, profile);
-
-    const users = readStorage(STORAGE.users, []);
-
-    const user = users.find(item => item.loginId === currentUser.loginId);
-
-    if (user) {
-        user.name = name;
-        writeStorage(STORAGE.users, users);
-        currentUser.name = name;
-    }
-
-    $("sidebarUserName").textContent = name;
-    $("welcomeName").textContent = name;
-
-    const initial = name.charAt(0).toUpperCase();
-
-    $("sidebarAvatar").textContent = initial;
-    $("headerAvatar").textContent = initial;
-    $("profileAvatar").textContent = initial;
-
-    addHistory(
-        "Profile updated",
-        "Your profile name was updated.",
-        "◉"
-    );
-
-    showToast("Profile updated.");
-}
-
-/* =========================================
-   SETTINGS
-========================================= */
-
-function changeAccent(color, save = true) {
-    const colors = {
-        gold: "#d9ad55",
-        blue: "#62a7e8",
-        purple: "#ad8be8",
-        green: "#66c69a"
-    };
-
-    const selected = colors[color] ? color : "gold";
-
-    document.documentElement.style.setProperty(
-        "--accent",
-        colors[selected]
-    );
-
-    const lightColors = {
-        gold: "#f5d58c",
-        blue: "#a3d0fa",
-        purple: "#d0baff",
-        green: "#a1e5c3"
-    };
-
-    document.documentElement.style.setProperty(
-        "--accent-light",
-        lightColors[selected]
-    );
-
-    $("accentSelect").value = selected;
-
-    if (save) {
-        const settings = readStorage(STORAGE.settings, {});
-        settings.accent = selected;
-        writeStorage(STORAGE.settings, settings);
-
-        showToast("Accent color updated.");
-    }
-}
-
-function toggleAnimations(enabled, save = true) {
-    document.body.classList.toggle("no-animations", !enabled);
-
-    if (save) {
-        const settings = readStorage(STORAGE.settings, {});
-        settings.animations = enabled;
-        writeStorage(STORAGE.settings, settings);
-
-        showToast(enabled ? "Animations enabled." : "Animations disabled.");
-    }
-}
-
-function resetDemoData() {
-    if (!confirm("This will clear your saved PCs, credits, history, settings and local account data. Continue?")) {
-        return;
-    }
-
-    Object.values(STORAGE).forEach(key => {
-        localStorage.removeItem(key);
-    });
-
-    transferredFiles = [];
-    openWindows = {};
-    currentUser = null;
-
-    showScreen("loginScreen");
-
-    showToast("Demo data reset.");
-}
-
-/* =========================================
-   DESKTOP CLOCK
-========================================= */
-
-function updateDesktopClock() {
-    const clock = $("desktopClock");
-
-    if (!clock) return;
-
-    const now = new Date();
-
-    clock.textContent = now.toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit"
-    }) + " · " + now.toLocaleDateString();
-}
-
-function startDesktopClock() {
-    updateDesktopClock();
-
-    if (window.desktopClockInterval) {
-        clearInterval(window.desktopClockInterval);
-    }
-
-    window.desktopClockInterval = setInterval(updateDesktopClock, 1000);
-}
-
-/* =========================================
-   START MENU
-========================================= */
-
-function toggleStartMenu() {
-    $("startMenu").classList.toggle("hidden");
-}
-
-/* =========================================
-   DESKTOP APPLICATIONS
-========================================= */
-
-const appDetails = {
-    fileManager: { title: "File Manager", icon: "📁" },
-    notepad: { title: "Notepad", icon: "📝" },
-    calculator: { title: "Calculator", icon: "🧮" },
-    browser: { title: "Browser", icon: "🌐" },
-    terminal: { title: "Terminal", icon: "⌨" },
-    settings: { title: "Settings", icon: "⚙" },
-    about: { title: "About Cloud PC", icon: "ⓘ" },
-    paint: { title: "Paint", icon: "🎨" }
-};
-
-function openApp(appName) {
-    const app = appDetails[appName];
-
-    if (!app) return;
-
-    if (openWindows[appName]) {
-        const existing = $("window-" + appName);
-
-        if (existing) {
-            existing.style.display = "flex";
-            existing.style.zIndex = ++windowCounter;
-        }
-
-        return;
-    }
-
-    const windowElement = document.createElement("div");
-
-    windowElement.className = "app-window";
-    windowElement.id = "window-" + appName;
-    windowElement.style.zIndex = ++windowCounter;
-
-    const titlebar = document.createElement("div");
-    titlebar.className = "window-titlebar";
-
-    const title = document.createElement("strong");
-    title.textContent = app.icon + "  " + app.title;
-
-    const controls = document.createElement("div");
-    controls.className = "window-controls";
-
-    const minimize = document.createElement("button");
-    minimize.textContent = "−";
-    minimize.title = "Minimize";
-    minimize.addEventListener("click", () => minimizeWindow(appName));
-
-    const close = document.createElement("button");
-    close.textContent = "×";
-    close.title = "Close";
-    close.addEventListener("click", () => closeWindow(appName));
-
-    controls.append(minimize, close);
-    titlebar.append(title, controls);
-
-    const content = document.createElement("div");
-    content.className = "window-content";
-    content.innerHTML = getAppContent(appName);
-
-    windowElement.append(titlebar, content);
-
-    $("windowLayer").appendChild(windowElement);
-
-    openWindows[appName] = true;
-
-    titlebar.addEventListener("mousedown", (event) => {
-        if (event.target.closest("button")) return;
-        makeWindowDraggable(windowElement, event);
-    });
-
-    titlebar.addEventListener("touchstart", (event) => {
-        if (event.target.closest("button")) return;
-        makeWindowDraggable(windowElement, event.touches[0]);
-    }, { passive: true });
-
-    addTaskbarApp(appName);
-
-    windowElement.addEventListener("mousedown", () => {
-        windowElement.style.zIndex = ++windowCounter;
-    });
-
-    if (appName === "notepad") {
-        loadNotepad();
-    }
-
-    if (appName === "calculator") {
-        calculatorExpression = "";
-    }
-
-    if (appName === "terminal") {
-        setupTerminal();
-    }
-
-    if (appName === "paint") {
-        setupPaint();
-    }
-}
-
-function closeWindow(appName) {
-    const element = $("window-" + appName);
-
-    if (element) element.remove();
-
-    delete openWindows[appName];
-
-    const taskbarButton = $("task-" + appName);
-
-    if (taskbarButton) taskbarButton.remove();
-}
-
-function minimizeWindow(appName) {
-    const element = $("window-" + appName);
-
-    if (element) {
-        element.style.display = "none";
-    }
-}
-
-function addTaskbarApp(appName) {
-    const container = $("taskbarApps");
-
-    const button = document.createElement("button");
-    button.className = "taskbar-app active";
-    button.id = "task-" + appName;
-    button.textContent = appDetails[appName].icon + " " + appDetails[appName].title;
-
-    button.addEventListener("click", () => {
-        const windowElement = $("window-" + appName);
-
-        if (!windowElement) return;
-
-        windowElement.style.display = "flex";
-        windowElement.style.zIndex = ++windowCounter;
-    });
-
-    container.appendChild(button);
-}
-
-function makeWindowDraggable(element, startEvent) {
-    const startX = startEvent.clientX;
-    const startY = startEvent.clientY;
-
-    const rect = element.getBoundingClientRect();
-
-    const originalLeft = rect.left;
-    const originalTop = rect.top;
-
-    element.style.transform = "none";
-    element.style.left = originalLeft + "px";
-    element.style.top = originalTop + "px";
-
-    function move(event) {
-        const x = event.clientX || event.touches?.[0]?.clientX;
-        const y = event.clientY || event.touches?.[0]?.clientY;
-
-        if (x === undefined || y === undefined) return;
-
-        const maxLeft = window.innerWidth - element.offsetWidth;
-        const maxTop = window.innerHeight - element.offsetHeight - 55;
-
-        element.style.left = Math.max(0, Math.min(maxLeft, originalLeft + x - startX)) + "px";
-        element.style.top = Math.max(55, Math.min(maxTop, originalTop + y - startY)) + "px";
-    }
-
-    function stop() {
-        document.removeEventListener("mousemove", move);
-        document.removeEventListener("mouseup", stop);
-        document.removeEventListener("touchmove", move);
-        document.removeEventListener("touchend", stop);
-    }
-
-    document.addEventListener("mousemove", move);
-    document.addEventListener("mouseup", stop);
-    document.addEventListener("touchmove", move, { passive: true });
-    document.addEventListener("touchend", stop);
-}
-
-/* =========================================
-   APPLICATION CONTENT
-========================================= */
-
-function getAppContent(appName) {
-    switch (appName) {
-        case "fileManager":
-            return `
-                <h3 style="margin-bottom:15px">This PC</h3>
-                <div class="file-manager-list">
-                    <div class="file-manager-item"><span>📁</span>Documents<small>Folder</small></div>
-                    <div class="file-manager-item"><span>📁</span>Downloads<small>Folder</small></div>
-                    <div class="file-manager-item"><span>📁</span>Pictures<small>Folder</small></div>
-                    <div class="file-manager-item"><span>💽</span>Local Disk (C:)<small>System drive</small></div>
-                    <div class="file-manager-item"><span>☁</span>Cloud Storage<small>Demo storage</small></div>
-                </div>
-                <p style="color:#888;margin-top:20px;font-size:10px">
-                    This is a simulated file manager. It does not access a remote server.
-                </p>
-            `;
-
-        case "notepad":
-            return `
-                <div style="height:100%;display:flex;flex-direction:column;gap:8px">
-                    <div style="display:flex;justify-content:space-between;align-items:center">
-                        <span>Untitled document</span>
-                        <button onclick="saveNotepad()">Save</button>
-                    </div>
-                    <textarea id="notepadText" placeholder="Start typing..."></textarea>
-                </div>
-            `;
-
-        case "calculator":
-            return `
-                <div class="calculator">
-                    <input id="calculatorDisplay" class="calculator-display" readonly value="0">
-                    <div class="calculator-grid">
-                        <button onclick="calculatorClear()">C</button>
-                        <button onclick="calculatorAppend('/')">÷</button>
-                        <button onclick="calculatorAppend('*')">×</button>
-                        <button onclick="calculatorBackspace()">⌫</button>
-
-                        <button onclick="calculatorAppend('7')">7</button>
-                        <button onclick="calculatorAppend('8')">8</button>
-                        <button onclick="calculatorAppend('9')">9</button>
-                        <button onclick="calculatorAppend('-')">−</button>
-
-                        <button onclick="calculatorAppend('4')">4</button>
-                        <button onclick="calculatorAppend('5')">5</button>
-                        <button onclick="calculatorAppend('6')">6</button>
-                        <button onclick="calculatorAppend('+')">+</button>
-
-                        <button onclick="calculatorAppend('1')">1</button>
-                        <button onclick="calculatorAppend('2')">2</button>
-                        <button onclick="calculatorAppend('3')">3</button>
-                        <button onclick="calculatorCalculate()" style="grid-row:span 2">=</button>
-
-                        <button onclick="calculatorAppend('0')" style="grid-column:span 2">0</button>
-                        <button onclick="calculatorAppend('.')">.</button>
-                    </div>
-                </div>
-            `;
-
-        case "browser":
-            return `
-                <div class="browser-bar">
-                    <input id="browserAddress" placeholder="Enter a website address">
-                    <button onclick="browserSearch()">Go</button>
-                </div>
-                <div id="browserMessage" class="browser-message">
-                    <h2 style="color:var(--accent-light);margin-bottom:10px">Cloud Browser</h2>
-                    This is a demonstration browser interface. Enter a website address to open it in a new browser tab.
-                </div>
-            `;
-
-        case "terminal":
-            return `
-                <div id="terminalOutput" class="terminal-output">
-Cloud PC Demo Terminal
-Type help to see available commands.
-
-            </div>
-            <input id="terminalInput" class="terminal-input" placeholder="Enter command and press Enter">
-            `;
-
-        case "settings":
-            return `
-                <h3>Desktop Settings</h3>
-                <p style="color:#999;margin:12px 0">Customize the demo desktop.</p>
-                <button onclick="changeAccent('gold')">Gold theme</button>
-                <button onclick="changeAccent('blue')">Blue theme</button>
-                <button onclick="changeAccent('purple')">Purple theme</button>
-                <button onclick="changeAccent('green')">Green theme</button>
-                <p style="margin-top:20px;color:#999">Account settings are available in the Cloud PC Dashboard.</p>
-            `;
-
-        case "about":
-            return `
-                <h2 style="color:var(--accent-light);margin-bottom:12px">Cloud PC</h2>
-                <p style="line-height:1.8;color:#aaa">
-                    Cloud PC is a browser-based desktop demonstration.
-                    It illustrates how users could access remote computing resources
-                    from different devices.
-                </p>
-                <p style="margin-top:15px;color:#888">
-                    This desktop is a front-end simulation, not a live virtual machine.
-                </p>
-            `;
-
-        case "paint":
-            return `
-                <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px">
-                    <label>Brush color</label>
-                    <input type="color" id="paintColor" value="#111111">
-                    <button onclick="clearPaint()">Clear canvas</button>
-                    <button onclick="downloadPaint()">Download image</button>
-                </div>
-                <canvas id="paintCanvas" class="paint-canvas" width="900" height="450"></canvas>
-            `;
-
-        default:
-            return "<p>Application not found.</p>";
-    }
-}
-
-/* =========================================
-   NOTEPAD
-========================================= */
-
-function loadNotepad() {
-    const textarea = $("notepadText");
-
-    if (!textarea) return;
-
-    textarea.value = readStorage(STORAGE.notepad, "");
-}
-
-function saveNotepad() {
-    const textarea = $("notepadText");
-
-    if (!textarea) return;
-
-    writeStorage(STORAGE.notepad, textarea.value);
-
-    addHistory(
-        "Notepad saved",
-        "Your demo Notepad document was saved in this browser.",
-        "📝"
-    );
-
-    showToast("Document saved.");
-}
-
-/* =========================================
-   CALCULATOR
-========================================= */
-
-function calculatorAppend(value) {
-    const display = $("calculatorDisplay");
-
-    if (!display) return;
-
-    calculatorExpression += value;
-    display.value = calculatorExpression;
-}
-
-function calculatorClear() {
-    calculatorExpression = "";
-
-    const display = $("calculatorDisplay");
-
-    if (display) display.value = "0";
-}
-
-function calculatorBackspace() {
-    calculatorExpression = calculatorExpression.slice(0, -1);
-
-    const display = $("calculatorDisplay");
-
-    if (display) display.value = calculatorExpression || "0";
-}
-
-function calculatorCalculate() {
-    const display = $("calculatorDisplay");
-
-    if (!display) return;
-
-    try {
-        if (!calculatorExpression || !/^[0-9+\-*/().\s]+$/.test(calculatorExpression)) {
-            throw new Error("Invalid expression");
-        }
-
-        const result = Function('"use strict"; return (' + calculatorExpression + ')')();
-
-        if (!Number.isFinite(result)) {
-            throw new Error("Invalid result");
-        }
-
-        calculatorExpression = String(result);
-        display.value = calculatorExpression;
-
-    } catch (error) {
-        display.value = "Error";
-        calculatorExpression = "";
-    }
-}
-
-/* =========================================
-   BROWSER DEMO
-========================================= */
-
-function browserSearch() {
-    const input = $("browserAddress");
-
-    if (!input) return;
-
-    let address = input.value.trim();
-
-    if (!address) {
-        showToast("Enter a website address.");
-        return;
-    }
-
-    if (!/^https?:\/\//i.test(address)) {
-        address = "https://" + address;
-    }
-
-    try {
-        const url = new URL(address);
-
-        if (!["http:", "https:"].includes(url.protocol)) {
-            throw new Error("Invalid protocol");
-        }
-
-        const message = $("browserMessage");
-
-        if (message) {
-            message.textContent = "Opening " + url.hostname + " in a new browser tab.";
-        }
-
-        window.open(url.href, "_blank", "noopener,noreferrer");
-
-    } catch (error) {
-        showToast("Enter a valid website address.");
-    }
-}
-
-/* =========================================
-   TERMINAL DEMO
-========================================= */
-
-function setupTerminal() {
-    const input = $("terminalInput");
-
-    if (!input) return;
-
-    input.addEventListener("keydown", function(event) {
-        if (event.key !== "Enter") return;
-
-        const command = input.value.trim().toLowerCase();
-        const output = $("terminalOutput");
-
-        const commands = {
-            help: "Available commands: help, date, time, whoami, clear, credits, pc, version",
-            whoami: "cloud-user",
-            credits: "Available demo credits: " + getCredits() + " CR",
-            pc: "Current PC: " + (cloudPCPlans[selectedCloudPC]?.name || "Not selected"),
-            version: "Cloud PC Demo OS version 1.0",
-            date: new Date().toLocaleDateString(),
-            time: new Date().toLocaleTimeString()
-        };
-
-        if (command === "clear") {
-            output.textContent = "";
-        } else {
-            output.textContent +=
-                "\n> " + command + "\n" +
-                (commands[command] || "Command not recognized. Type help.") +
-                "\n";
-        }
-
-        input.value = "";
-        output.scrollTop = output.scrollHeight;
-    });
-}
-
-/* =========================================
-   PAINT
-========================================= */
-
-let paintDrawing = false;
-
-function setupPaint() {
-    const canvas = $("paintCanvas");
-
-    if (!canvas) return;
-
-    const context = canvas.getContext("2d");
-
-    context.fillStyle = "#ffffff";
-    context.fillRect(0, 0, canvas.width, canvas.height);
-
-    function getPosition(event) {
-        const rect = canvas.getBoundingClientRect();
-
-        return {
-            x: (event.clientX - rect.left) * canvas.width / rect.width,
-            y: (event.clientY - rect.top) * canvas.height / rect.height
-        };
-    }
-
-    canvas.onpointerdown = function(event) {
-        paintDrawing = true;
-
-        const position = getPosition(event);
-
-        context.beginPath();
-        context.moveTo(position.x, position.y);
-
-        canvas.setPointerCapture(event.pointerId);
-    };
-
-    canvas.onpointermove = function(event) {
-        if (!paintDrawing) return;
-
-        const position = getPosition(event);
-
-        context.strokeStyle = $("paintColor").value;
-        context.lineWidth = 5;
-        context.lineCap = "round";
-
-        context.lineTo(position.x, position.y);
-        context.stroke();
-    };
-
-    canvas.onpointerup = function() {
-        paintDrawing = false;
-    };
-
-    canvas.onpointercancel = function() {
-        paintDrawing = false;
-    };
-}
-
-function clearPaint() {
-    const canvas = $("paintCanvas");
-
-    if (!canvas) return;
-
-    const context = canvas.getContext("2d");
-
-    context.fillStyle = "#ffffff";
-    context.fillRect(0, 0, canvas.width, canvas.height);
-}
-
-function downloadPaint() {
-    const canvas = $("paintCanvas");
-
-    if (!canvas) return;
-
-    const anchor = document.createElement("a");
-    anchor.download = "cloudpc-paint.png";
-    anchor.href = canvas.toDataURL("image/png");
-    anchor.click();
-}
-
-/* =========================================
-   PARTICLE BACKGROUND
-========================================= */
-
-function setupParticles() {
-    const canvas = $("particleCanvas");
-
-    if (!canvas) return;
-
-    const context = canvas.getContext("2d");
-
-    let particles = [];
-    let width = window.innerWidth;
-    let height = window.innerHeight;
-
-    function resize() {
-        width = window.innerWidth;
-        height = window.innerHeight;
-
-        const ratio = Math.min(window.devicePixelRatio || 1, 2);
-
-        canvas.width = width * ratio;
-        canvas.height = height * ratio;
-
-        context.setTransform(ratio, 0, 0, ratio, 0, 0);
-
-        particles = [];
-
-        const count = Math.min(65, Math.floor(width / 20));
-
-        for (let i = 0; i < count; i++) {
-            particles.push({
-                x: Math.random() * width,
-                y: Math.random() * height,
-                radius: Math.random() * 1.5 + .4,
-                speed: Math.random() * .25 + .08,
-                opacity: Math.random() * .45 + .1
-            });
-        }
-    }
-
-    function animate() {
-        context.clearRect(0, 0, width, height);
-
-        particles.forEach(particle => {
-            particle.y -= particle.speed;
-
-            if (particle.y < 0) {
-                particle.y = height;
-                particle.x = Math.random() * width;
-            }
-
-            context.beginPath();
-            context.arc(
-                particle.x,
-                particle.y,
-                particle.radius,
-                0,
-                Math.PI * 2
-            );
-
-            context.fillStyle = `rgba(217,173,85,${particle.opacity})`;
-            context.fill();
-        });
-
-        requestAnimationFrame(animate);
-    }
-
-    resize();
-    animate();
-
-    window.addEventListener("resize", resize);
-}
-
-/* =========================================
-   INITIALIZE PROJECT
-========================================= */
-
-document.addEventListener("DOMContentLoaded", function() {
-    setupParticles();
-    restoreSession();
-    updateDesktopClock();
 });
