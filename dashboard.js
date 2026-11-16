@@ -1595,3 +1595,23 @@ document.addEventListener("DOMContentLoaded", function() {
     restoreSession();
     updateDesktopClock();
 });
+
+/* =========================================
+   OPENING ANIMATION
+========================================= */
+
+(function bootAnimation() {
+    const overlay = $("bootOverlay");
+
+    if (!overlay) return;
+
+    setTimeout(() => {
+        const text = $("bootText");
+        if (text) text.textContent = "Almost ready…";
+    }, 1000);
+
+    setTimeout(() => {
+        document.body.classList.remove("booting");
+        overlay.remove();
+    }, 3000);
+})();

@@ -5,12 +5,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cloud PC | Your Desktop. Anywhere.</title>
+    <script>document.documentElement.classList.add("has-intro");setTimeout(function(){document.documentElement.classList.add("page-ready")},7000);</script>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+
+    <!-- Opening animation -->
+    <div class="intro" id="intro">
+        <div class="intro-curtain intro-top"></div>
+        <div class="intro-curtain intro-bottom"></div>
+        <div class="intro-center">
+            <div class="intro-glow"></div>
+            <div class="intro-chip chip-svg" id="introChip"></div>
+            <div class="intro-logo">CLOUD<span>PC</span></div>
+            <div class="intro-tagline">YOUR DESKTOP. ANYWHERE.</div>
+            <div class="intro-loader">
+                <div class="intro-bar"><i></i></div>
+                <div class="intro-meta"><span id="introStatus">INITIALIZING CORE</span><span id="introPercent">0%</span></div>
+            </div>
+        </div>
+        <button class="intro-skip" id="introSkip" type="button">SKIP &rsaquo;</button>
+    </div>
+
+    <!-- Golden CPU processing animation (background) -->
+    <div class="bg-chip chip-svg" id="bgChip" aria-hidden="true"></div>
+
 
     <canvas id="particles"></canvas>
 
@@ -21,6 +43,7 @@
         </a>
 
         <nav class="nav-links">
+            <button class="nav-btn" id="navHow" type="button">HOW IT WORKS</button>
             <button class="nav-btn" data-info="about">ABOUT</button>
             <button class="nav-btn" data-info="settings">SETTINGS</button>
             <button class="nav-btn" data-info="profile">PROFILE</button>
@@ -61,6 +84,9 @@
                     </button>
                     <button class="btn btn-outline btn-large" id="heroLogin">
                         LOGIN TO CLOUD PC
+                    </button>
+                    <button class="btn btn-outline btn-how" id="heroHow" type="button">
+                        &#9654; HOW IT WORKS
                     </button>
                 </div>
 
@@ -314,6 +340,24 @@
             <div id="infoContent"></div>
         </div>
     </div>
+
+    <!-- How it works: sliding window -->
+    <aside class="how-drawer" id="howDrawer" aria-hidden="true">
+        <div class="how-backdrop" id="howBackdrop"></div>
+        <div class="how-panel" role="dialog" aria-label="How Cloud PC works">
+            <button class="modal-close" id="howClose" type="button" aria-label="Close">&times;</button>
+            <div class="modal-logo">HOW IT <span class="gold">WORKS</span></div>
+            <div class="how-viewport" id="howViewport">
+                <div class="how-track" id="howTrack"></div>
+            </div>
+            <div class="how-progress"><i id="howProgress"></i></div>
+            <div class="how-controls">
+                <button class="btn btn-outline" id="howPrev" type="button">&lsaquo; BACK</button>
+                <div class="how-dots" id="howDots"></div>
+                <button class="btn btn-gold" id="howNext" type="button">NEXT &rsaquo;</button>
+            </div>
+        </div>
+    </aside>
 
     <script src="script.js"></script>
 </body>
